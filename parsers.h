@@ -34,6 +34,8 @@
 	LispParser, \
 	LuaParser, \
 	MakefileParser, \
+	ObjCParser, \
+	ObjCppParser, \
 	PascalParser, \
 	PerlParser, \
 	PhpParser, \

@@ -29,6 +29,7 @@ SOURCES = \
 	lua.c \
 	main.c \
 	make.c \
+	objc.c \
 	options.c \
 	parse.c \
 	pascal.c \
@@ -84,6 +85,7 @@ OBJECTS = \
 	lua.$(OBJEXT) \
 	main.$(OBJEXT) \
 	make.$(OBJEXT) \
+	objc.$(OBJEXT) \
 	options.$(OBJEXT) \
 	parse.$(OBJEXT) \
 	pascal.$(OBJEXT) \
