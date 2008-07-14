@@ -30,8 +30,8 @@
 #include "vstring.h"
 
 /*
- *	On-line PL/SQL Reference Guide:
- *	http://info-it.umsystem.edu/oradocs/doc/server/doc/PLS23/toc.htm
+ *	On-line "Oracle Database PL/SQL Language Reference":
+ *	http://download.oracle.com/docs/cd/B28359_01/appdev.111/b28370/toc.htm
  *
  *	Sample PL/SQL code is available from:
  *	http://www.orafaq.com/faqscrpt.htm#GENPLSQL
@@ -464,16 +464,6 @@ static void makeSqlTag (tokenInfo *const token, const sqlKind kind)
  *	 Parsing functions
  */
 
-static int skipToCharacter (const int c)
-{
-	int d;
-	do
-	{
-		d = fileGetc ();
-	} while (d != EOF  &&  d != c);
-	return d;
-}
-
 static void parseString (vString *const string, const int delimiter)
 {
 	boolean end = FALSE;
@@ -509,16 +499,6 @@ static void parseIdentifier (vString *const string, const int firstChar)
 	vStringTerminate (string);
 	if (!isspace (c))
 		fileUngetc (c);		/* unget non-identifier character */
-}
-
-static keywordId analyzeToken (vString *const name)
-{
-	vString *keyword = vStringNew ();
-	keywordId result;
-	vStringCopyToLower (keyword, name);
-	result = (keywordId) lookupKeyword (vStringValue (keyword), Lang_sql);
-	vStringDelete (keyword);
-	return result;
 }
 
 static void readToken (tokenInfo *const token)
@@ -573,7 +553,7 @@ getNextChar:
 				  c = fileGetc ();
 				  if (c == '-')		/* -- is this the start of a comment? */
 				  {
-					  skipToCharacter ('\n');
+					  fileSkipToCharacter ('\n');
 					  goto getNextChar;
 				  }
 				  else
@@ -628,7 +608,7 @@ getNextChar:
 						  {
 							  do
 							  {
-								  skipToCharacter ('*');
+								  fileSkipToCharacter ('*');
 								  c = fileGetc ();
 								  if (c == '/')
 									  break;
@@ -639,7 +619,7 @@ getNextChar:
 						  }
 						  else if (d == '/')	/* is this the start of a comment?  */
 						  {
-							  skipToCharacter ('\n');
+							  fileSkipToCharacter ('\n');
 							  goto getNextChar;
 						  }
 					  }
@@ -654,11 +634,11 @@ getNextChar:
 					  parseIdentifier (token->string, c);
 					  token->lineNumber = getSourceLineNumber ();
 					  token->filePosition = getInputFilePosition ();
-					  token->keyword = analyzeToken (token->string);
+					  token->keyword = analyzeToken (token->string, Lang_sql);
 					  if (isKeyword (token, KEYWORD_rem))
 					  {
 						  vStringClear (token->string);
-						  skipToCharacter ('\n');
+						  fileSkipToCharacter ('\n');
 						  goto getNextChar;
 					  }
 					  else if (isKeyword (token, KEYWORD_NONE))
@@ -844,19 +824,29 @@ static void parseSubProgram (tokenInfo *const token)
 		readToken (name);
 		readToken (token);
 	}
-	skipArgumentList (token);
+	if (isType (token, TOKEN_OPEN_PAREN))
+	{
+		/* Reads to the next token after the TOKEN_CLOSE_PAREN */
+		skipArgumentList(token);
+	}
 
 	if (kind == SQLTAG_FUNCTION)
 	{
-		if (isKeyword (token, KEYWORD_return))
+		if (isKeyword (token, KEYWORD_return) || isKeyword (token, KEYWORD_returns))
 		{
 			/* Read datatype */
 			readToken (token);
 			/*
 			 * Read token after which could be the
 			 * command terminator if a prototype
+			 * or an open parantheses
 			 */
 			readToken (token);
+			if (isType (token, TOKEN_OPEN_PAREN))
+			{
+				/* Reads to the next token after the TOKEN_CLOSE_PAREN */
+				skipArgumentList(token);
+			}
 		}
 	}
 	if( isCmdTerm (token) )

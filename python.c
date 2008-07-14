@@ -26,13 +26,14 @@
 *   DATA DEFINITIONS
 */
 typedef enum {
-	K_CLASS, K_FUNCTION, K_MEMBER
+	K_CLASS, K_FUNCTION, K_MEMBER, K_VARIABLE
 } pythonKind;
 
 static kindOption PythonKinds[] = {
 	{TRUE, 'c', "class",    "classes"},
 	{TRUE, 'f', "function", "functions"},
-	{TRUE, 'm', "member",   "class members"}
+	{TRUE, 'm', "member",   "class members"},
+    {TRUE, 'v', "variable", "variables"}
 };
 
 typedef struct NestingLevel NestingLevel;
@@ -143,6 +144,20 @@ static void makeClassTag (vString *const class, vString *const inheritance,
 	makeTagEntry (&tag);
 }
 
+static void makeVariableTag (vString *const var, vString *const parent)
+{
+	tagEntryInfo tag;
+	initTagEntry (&tag, vStringValue (var));
+	tag.kindName = "variable";
+	tag.kind = 'v';
+	if (vStringLength (parent) > 0)
+	{
+		tag.extensionFields.scope [0] = "class";
+		tag.extensionFields.scope [1] = vStringValue (parent);
+	}
+	makeTagEntry (&tag);
+}
+
 /* Skip a single or double quoted string. */
 static const char *skipString (const char *cp)
 {
@@ -165,15 +180,15 @@ static const char *skipEverything (const char *cp)
 {
 	for (; *cp; cp++)
 	{
-	    if (*cp == '"' || *cp == '\'')
+		if (*cp == '"' || *cp == '\'')
 		{
 			cp = skipString(cp);
 			if (!*cp) break;
 		}
 		if (isIdentifierFirstCharacter ((int) *cp))
 			return cp;
-    }
-    return cp;
+	}
+	return cp;
 }
 
 /* Skip an identifier. */
@@ -181,7 +196,7 @@ static const char *skipIdentifier (const char *cp)
 {
 	while (isIdentifierCharacter ((int) *cp))
 		cp++;
-    return cp;
+	return cp;
 }
 
 static const char *findDefinitionOrClass (const char *cp)
@@ -291,6 +306,30 @@ static boolean constructParentString(NestingLevels *nls, int indent,
 	return is_class;
 }
 
+/* Check whether parent's indentation level is higher than the current level and
+ * if so, remove it.
+ */
+static void checkParent(NestingLevels *nls, int indent, vString *parent)
+{
+	int i;
+	NestingLevel *n;
+
+	for (i = 0; i < nls->n; i++)
+	{
+		n = nls->levels + i;
+		/* is there a better way to compare two vStrings? */
+		if (strcmp(vStringValue(parent), vStringValue(n->name)) == 0)
+		{
+			if (n && indent <= n->indentation)
+			{
+				/* remove this level by clearing its name */
+				vStringClear(n->name);
+			}
+			break;
+		}
+	}
+}
+
 static NestingLevels *newNestingLevels(void)
 {
 	NestingLevels *nls = xCalloc (1, NestingLevels);
@@ -342,14 +381,29 @@ static void addNestingLevel(NestingLevels *nls, int indentation,
 /* Return a pointer to the start of the next triple string, or NULL. Store
  * the kind of triple string in "which" if the return is not NULL.
  */
-static char *find_triple_start(char const *string, char const **which)
+static char const *find_triple_start(char const *string, char const **which)
 {
-    char *s;
-    if ((s = strstr (string, doubletriple)))
-        *which = doubletriple;
-    else if ((s = strstr (string, singletriple)))
-        *which = singletriple;
-    return s;
+	char const *cp = string;
+
+	for (; *cp; cp++)
+	{
+		if (*cp == '"' || *cp == '\'')
+		{
+			if (strncmp(cp, doubletriple, 3) == 0)
+			{
+				*which = doubletriple;
+				return cp;
+			}
+			if (strncmp(cp, singletriple, 3) == 0)
+			{
+				*which = singletriple;
+				return cp;
+			}
+			cp = skipString(cp);
+			if (!*cp) break;
+		}
+	}
+	return NULL;
 }
 
 /* Find the end of a triple string as pointed to by "which", and update "which"
@@ -357,11 +411,11 @@ static char *find_triple_start(char const *string, char const **which)
  */
 static void find_triple_end(char const *string, char const **which)
 {
-    char const *s = string;
-    while (1)
+	char const *s = string;
+	while (1)
 	{
-	    /* Check if the sting ends in the same line. */
-	    s = strstr (string, *which);
+		/* Check if the string ends in the same line. */
+		s = strstr (s, *which);
 		if (!s) break;
 		s += 3;
 		*which = NULL;
@@ -370,6 +424,45 @@ static void find_triple_end(char const *string, char const **which)
 		if (!s) break;
 		s += 3;
 	}
+}
+
+static const char *findVariable(const char *line)
+{
+	/* Parse global and class variable names (C.x) from assignment statements.
+	 * Object attributes (obj.x) are ignored.
+	 * Assignment to a tuple 'x, y = 2, 3' not supported.
+	 * TODO: ignore duplicate tags from reassignment statements. */
+	const char *cp, *sp, *eq, *start;
+
+	cp = strstr(line, "=");
+	if (!cp)
+		return NULL;
+	eq = cp + 1;
+	while (*eq)
+	{
+		if (*eq == '=')
+			return NULL;	/* ignore '==' operator and 'x=5,y=6)' function lines */
+		if (*eq == '(')
+			break;	/* allow 'x = func(b=2,y=2,' lines */
+		eq++;
+	}
+
+	/* go backwards to the start of the line, checking we have valid chars */
+	start = cp - 1;
+	while (start >= line && isspace ((int) *start))
+		--start;
+	while (start >= line && isIdentifierCharacter ((int) *start))
+		--start;
+	if (!isIdentifierFirstCharacter(*(start + 1)))
+		return NULL;
+	sp = start;
+	while (sp >= line && isspace ((int) *sp))
+		--sp;
+	if ((sp + 1) != line)	/* the line isn't a simple variable assignment */
+		return NULL;
+	/* the line is valid, parse the variable name */
+	++start;
+	return start;
 }
 
 static void findPythonTags (void)
@@ -387,13 +480,17 @@ static void findPythonTags (void)
 	while ((line = (const char *) fileReadLine ()) != NULL)
 	{
 		const char *cp = line;
-		char *longstring;
-		const char *keyword;
+		char const *longstring;
+		char const *keyword, *variable;
 		int indent;
 
 		cp = skipSpace (cp);
 
-		if (*cp == '#' || *cp == '\0')  /* skip comment or blank line */
+		if (*cp == '\0')  /* skip blank line */
+			continue;
+
+		/* Skip comment if we are not inside a multi-line string. */
+		if (*cp == '#' && !longStringLiteral)
 			continue;
 
 		/* Deal with line continuation. */
@@ -411,11 +508,13 @@ static void findPythonTags (void)
 		cp = skipSpace (cp);
 		indent = cp - line;
 		line_skip = 0;
+		
+		checkParent(nesting_levels, indent, parent);
 
 		/* Deal with multiline string ending. */
 		if (longStringLiteral)
 		{
-		    find_triple_end(cp, &longStringLiteral);
+			find_triple_end(cp, &longStringLiteral);
 			continue;
 		}
 		
@@ -423,14 +522,10 @@ static void findPythonTags (void)
 		longstring = find_triple_start(cp, &longStringLiteral);
 		if (longstring)
 		{
-			/* Note: For our purposes, the line just ends at the first long
-			 * string. I.e. we don't parse for any tags in the rest of the
-			 * line, but we do look for the string ending of course.
-			 */
-			*longstring = '\0';
-
 			longstring += 3;
 			find_triple_end(longstring, &longStringLiteral);
+			/* We don't parse for any tags in the rest of the line. */
+			continue;
 		}
 
 		/* Deal with def and class keywords. */
@@ -465,6 +560,28 @@ static void findPythonTags (void)
 
 				addNestingLevel(nesting_levels, indent, name, is_class);
 			}
+		}
+		/* Find global and class variables */
+		variable = findVariable(line);
+		if (variable)
+		{
+			const char *start = variable;
+			boolean parent_is_class;
+
+			vStringClear (name);
+			while (isIdentifierCharacter ((int) *start))
+			{
+				vStringPut (name, (int) *start);
+				++start;
+			}
+			vStringTerminate (name);
+
+			parent_is_class = constructParentString(nesting_levels, indent, parent);
+			/* skip variables in methods */
+			if (! parent_is_class && vStringLength(parent) > 0)
+				continue;
+
+			makeVariableTag (name, parent);
 		}
 	}
 	/* Clean up all memory we allocated. */

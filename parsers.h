@@ -50,6 +50,7 @@
 	TclParser, \
 	VeraParser, \
 	VerilogParser, \
+	VhdlParser, \
 	VimParser, \
 	YaccParser
 
