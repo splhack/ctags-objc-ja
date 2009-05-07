@@ -100,6 +100,14 @@ typedef struct sOptionValues {
 	stringList* etagsInclude;/* --etags-include  list of TAGS files to include*/
 	unsigned int tagFileFormat;/* --format  tag file format (level) */
 	boolean if0;            /* --if0  examine code within "#if 0" branch */
+#ifdef KANJI
+	enum eJcode {
+		JCODE_ASCII,		/* ASCII ode */
+		JCODE_SJIS,			/* Shift JIS code */
+		JCODE_EUC,			/* EUC code */
+		JCODE_UTF8			/* utf-8 code */
+	} jcode;				/* --jcode  japanese kanji code */
+#endif
 	boolean kindLong;       /* --kind-long */
 	langType language;      /* --lang specified language override */
 	boolean followLinks;    /* --link  follow symbolic links? */

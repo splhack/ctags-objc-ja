@@ -47,6 +47,9 @@
 #include "routines.h"
 #include "sort.h"
 #include "strlist.h"
+#ifdef KANJI
+# include "kanji.h"
+#endif
 
 /*
 *   MACROS
@@ -162,7 +165,15 @@ static void addPseudoTags (void)
 		writePseudoTag ("TAG_PROGRAM_AUTHOR",  AUTHOR_NAME,  AUTHOR_EMAIL);
 		writePseudoTag ("TAG_PROGRAM_NAME",    PROGRAM_NAME, "");
 		writePseudoTag ("TAG_PROGRAM_URL",     PROGRAM_URL,  "official site");
+#ifndef KANJI
 		writePseudoTag ("TAG_PROGRAM_VERSION", PROGRAM_VERSION, "");
+#else
+		writePseudoTag ("TAG_PROGRAM_JP_AUTHOR",
+					JP_AUTHOR_NAME, JP_AUTHOR_EMAIL);
+		writePseudoTag ("TAG_PROGRAM_JP_URL",	JP_AUTHOR_URL, "");
+		writePseudoTag ("TAG_PROGRAM_VERSION",
+					PROGRAM_VERSION PROGRAM_JP_VERSION, "");
+#endif
 	}
 }
 
@@ -578,6 +589,10 @@ static size_t writeSourceLine (FILE *const fp, const char *const line)
 {
 	size_t length = 0;
 	const char *p;
+#ifdef KANJI
+    int klen;
+    int ki;
+#endif
 
 	/*  Write everything up to, but not including, a line end character.
 	 */
@@ -589,6 +604,16 @@ static size_t writeSourceLine (FILE *const fp, const char *const line)
 		if (c == CRETURN  ||  c == NEWLINE)
 			break;
 
+#ifdef KANJI
+		if (klen = ISkanji(c))
+		{
+			for (ki = 0; ki < klen; ki++)	
+				putc(*p++, fp);
+			--p;
+			length += klen;
+			continue;
+		}
+#endif
 		/*  If character is '\', or a terminal '$', then quote it.
 		 */
 		if (c == BACKSLASH  ||  c == (Option.backward ? '?' : '/')  ||
@@ -611,6 +636,10 @@ static size_t writeCompactSourceLine (FILE *const fp, const char *const line)
 	size_t  length = 0;
 	const char *p;
 	int c;
+#ifdef KANJI
+    int klen;
+    int ki;
+#endif
 
 	/*  Write everything up to, but not including, the newline.
 	 */
@@ -619,6 +648,16 @@ static size_t writeCompactSourceLine (FILE *const fp, const char *const line)
 		if (lineStarted  || ! isspace (c))  /* ignore leading spaces */
 		{
 			lineStarted = TRUE;
+#ifdef KANJI
+			if (klen = ISkanji(c))
+			{
+				for (ki = 0; ki < klen; ki++)	
+					putc(*p++, fp);
+				--p;
+				length += klen;
+				continue;
+			}
+#endif
 			if (isspace (c))
 			{
 				int next;
