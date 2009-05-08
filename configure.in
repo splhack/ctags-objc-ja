@@ -81,6 +81,9 @@ AC_ARG_ENABLE(tmpdir,
 [  --enable-tmpdir=DIR     default directory for temporary files [ARG=/tmp]],
 	tmpdir_specified=yes)
 
+AC_ARG_ENABLE(japanese-support,
+[  --enable-japanese-support
+                          enable Japanese support], AC_DEFINE(KANJI))
 
 dnl Process configuration options
 dnl -----------------------------
