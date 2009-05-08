@@ -102,10 +102,11 @@ typedef struct sOptionValues {
 	boolean if0;            /* --if0  examine code within "#if 0" branch */
 #ifdef KANJI
 	enum eJcode {
-		JCODE_ASCII,		/* ASCII ode */
+		JCODE_ASCII,		/* ASCII code */
 		JCODE_SJIS,			/* Shift JIS code */
 		JCODE_EUC,			/* EUC code */
-		JCODE_UTF8			/* utf-8 code */
+		JCODE_UTF8,			/* utf-8 code */
+		JCODE_AUTO,			/* auto detect */
 	} jcode;				/* --jcode  japanese kanji code */
 #endif
 	boolean kindLong;       /* --kind-long */

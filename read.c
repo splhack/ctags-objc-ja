@@ -270,6 +270,28 @@ extern boolean fileOpen (const char *const fileName, const langType language)
 		setInputFileName (fileName);
 		fgetpos (File.fp, &StartOfLine);
 		fgetpos (File.fp, &File.filePosition);
+#ifdef KANJI
+		if (Option.jcode == JCODE_AUTO)
+		{
+			extern const char *guess(FILE *fp);
+			const char *enc;
+
+			enc = guess (File.fp);
+			fsetpos (File.fp, &StartOfLine);
+
+			if (enc == NULL) {
+				File.jcode = JCODE_ASCII;
+			} else if (strcmp (enc, "Shift_JIS") == 0) {
+				File.jcode = JCODE_SJIS;
+			} else if (strcmp (enc, "EUC-JP") == 0) {
+				File.jcode = JCODE_EUC;
+			} else if (strcmp (enc, "UTF-8") == 0) {
+				File.jcode = JCODE_UTF8;
+			} else {
+				File.jcode = JCODE_ASCII;
+			}
+		}
+#endif
 		File.currentLine  = NULL;
 		File.language     = language;
 		File.lineNumber   = 0L;

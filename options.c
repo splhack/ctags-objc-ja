@@ -141,11 +141,7 @@ optionValues Option = {
 	DEFAULT_FILE_FORMAT,/* --format */
 	FALSE,      /* --if0 */
 #ifdef KANJI
-# if defined(WIN32) || defined(MSDOS) || defined(OS2) || defined(__CYGWIN__) || defined(__MACINTOSH__) || defined(__APPLE_CC__)
-    JCODE_SJIS,		/* --jcode */
-# else
-    JCODE_EUC,		/* --jcode */
-# endif
+    JCODE_AUTO,		/* --jcode */
 #endif
 	FALSE,      /* --kind-long */
 	LANG_AUTO,  /* --lang */
@@ -236,12 +232,8 @@ static optionDescription LongOptionDescription [] = {
  {1,"  --if0=[yes|no]"},
  {1,"       Should C code within #if 0 conditional branches be parsed [no]?"},
 #ifdef KANJI
- {1,"  --jcode=ascii|sjis|euc|utf8"},
-# if defined(WIN32) || defined(MSDOS) || defined(OS2) || defined(__CYGWIN__) || defined(__MACINTOSH__) || defined(__APPLE_CC__)
- {1,"       Specify Japanese kanji code [sjis]."},
-# else
- {1,"       Specify Japanese kanji code [euc]."},
-# endif
+ {1,"  --jcode=auto|ascii|sjis|euc|utf8"},
+ {1,"       Specify Japanese kanji code [auto]."},
 #endif
  {1,"  --<LANG>-kinds=[+|-]kinds"},
  {1,"       Enable/disable tag kinds for language <LANG>."},
@@ -910,7 +902,16 @@ static void processJcodeOption(const char *const option,
 {
 	switch (*parameter)
 	{
-		case 'a':	Option.jcode = JCODE_ASCII;	break;
+		case 'a':
+			switch (*(parameter + 1))
+			{
+				case 'u':	Option.jcode = JCODE_AUTO;	break;
+				case 's':	Option.jcode = JCODE_ASCII;	break;
+				default:
+					error(FATAL, "Invalid value for \"%s\" option", option);
+					break;
+			}
+			break;
 		case 's':	Option.jcode = JCODE_SJIS;	break;
 		case 'e':	Option.jcode = JCODE_EUC;	break;
 		case 'u':	Option.jcode = JCODE_UTF8;	break;

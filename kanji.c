@@ -3,11 +3,13 @@
  *	original Ogasawara Hiroyuki (COR.)
  *  original Atsushi Nakamura
  ******************************************************************************/
+#include "general.h"	/* must always come first */
+
 #ifdef KANJI
 
 #include <stdio.h>
-#include "general.h"	/* must always come first */
 #include "options.h"
+#include "read.h"
 #include "kanji.h"
 
 static unsigned char	kanji_map_ascii[]= {
@@ -88,10 +90,12 @@ static unsigned char	kanji_map_utf8[]= {
 
 int ISkanji(int code)
 {
+	int jcode = Option.jcode == JCODE_AUTO ? File.jcode : Option.jcode;
+
 	if (code >= 0x100)
 		return 0;
 
-	switch (Option.jcode) {
+	switch (jcode) {
 	case JCODE_ASCII:
 		return kanji_map_ascii[code & 0xff];
 	case JCODE_SJIS:
