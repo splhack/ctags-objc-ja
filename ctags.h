@@ -24,10 +24,10 @@
 #define AUTHOR_EMAIL      "dhiebert@users.sourceforge.net"
 
 #ifdef KANJI
-# define PROGRAM_JP_VERSION	"J1"
-# define JP_AUTHOR_NAME		"Hirohito Higashi"
+# define PROGRAM_JP_VERSION	"J2"
+# define JP_AUTHOR_NAME		"HIGASHI Hirohito"
 # define JP_AUTHOR_URL		"http://hp.vector.co.jp/authors/VA025040/"
-# define JP_AUTHOR_EMAIL	"h_east@pop11.odn.ne.jp"
+# define JP_AUTHOR_TWITTER	"Twitter: @h_east"
 #endif
 
 #endif	/* _CTAGS_H */

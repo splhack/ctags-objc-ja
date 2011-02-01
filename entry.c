@@ -148,6 +148,9 @@ static void addPseudoTags (void)
 	{
 		char format [11];
 		const char *formatComment = "unknown format";
+#ifdef KANJI
+		const char *encoding = NULL;
+#endif
 
 		sprintf (format, "%u", Option.tagFileFormat);
 
@@ -169,10 +172,23 @@ static void addPseudoTags (void)
 		writePseudoTag ("TAG_PROGRAM_VERSION", PROGRAM_VERSION, "");
 #else
 		writePseudoTag ("TAG_PROGRAM_JP_AUTHOR",
-					JP_AUTHOR_NAME, JP_AUTHOR_EMAIL);
+					JP_AUTHOR_NAME, JP_AUTHOR_TWITTER);
 		writePseudoTag ("TAG_PROGRAM_JP_URL",	JP_AUTHOR_URL, "");
 		writePseudoTag ("TAG_PROGRAM_VERSION",
 					PROGRAM_VERSION PROGRAM_JP_VERSION, "");
+
+		switch (Option.jcode)
+		{
+			case JCODE_ASCII:	break;
+			case JCODE_SJIS:	encoding = "cp932";		break;
+			case JCODE_EUC:		encoding = "euc-jp";	break;
+			case JCODE_UTF8:	encoding = "utf-8";		break;
+		}
+
+		if (encoding != NULL)
+		{
+			writePseudoTag ("TAG_FILE_ENCODING", encoding, "");
+		}
 #endif
 	}
 }

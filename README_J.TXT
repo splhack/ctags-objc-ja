@@ -1,14 +1,13 @@
-Exuberant Ctags 日本語対応版 5.7J1
+Exuberant Ctags 日本語対応版 5.8J2
 ===============
-                                                                2007年09月10日
-                                                   東　浩仁 (Hirohito Higashi)
-                                                        h_east@pop11.odn.ne.jp
-                         http://www.vector.co.jp/soft/win95/prog/se174721.html
+                                                                2010年12月25日
+                                                   東　浩仁 (HIGASHI Hirohito)
+                                                              Twitter: @h_east
                                       http://hp.vector.co.jp/authors/VA025040/
 
 はじめに
-    Darren Hiebert (darren@hiebert.com, http://ctags.sourceforge.net/)氏が作成
-    した Exuberant Ctags に日本語対応パッチをあてました。
+    Darren Hiebert (http://ctags.sourceforge.net/)氏が作成した Exuberant Ctags
+    に日本語対応パッチをあてました。
     内部処理のみの対応です。ヘルプやメッセージの表示はオリジナルのままです。
 
 パッチ内容
@@ -18,10 +17,17 @@ Exuberant Ctags 日本語対応版 5.7J1
   ・以下のコマンドラインオプションを追加しました。
     --jcode=ascii|sjis|euc|utf8
         日本語文字コードを指定する。
-        デフォルトはUNIX系(cygwin除く)が EUC でその他は SJIS です。
-        'ascii' を指定した場合はオリジナルと同じ動作になります。
-        MSBが必ず立っているMulti Byte文字コードであれば 'ascii' で正常に処理で
-        きます。(EUC や UTF-8 も;;)
+        デフォルトはUNIX系(cygwin除く)が utf8 でその他は sjis です。
+        ascii を指定した場合はオリジナルと同じ動作になります。
+
+        sjis, euc, utf8 を指定した場合は出力するタグファイルのヘッダにエンコー
+        ド情報(_TAG_FILE_ENCODING)が付加されます。
+            sjisを指定した場合
+                !_TAG_FILE_ENCODING	cp932	//
+            eucを指定した場合
+                !_TAG_FILE_ENCODING	euc-jp	//
+            utf8を指定した場合
+                !_TAG_FILE_ENCODING	utf-8	//
 
   ※コンパイルオプション -DKANJI を定義すると上記パッチが有効になります。
     定義しなければオリジナルと同じ動作になります。
@@ -34,8 +40,7 @@ Exuberant Ctags 日本語対応版 5.7J1
 日本語対応版で追加されているファイル
     ctags_j.html
         ctagsマニュアルの日本語訳HTMLファイルです。
-        ●注意●現時点(2006/06/12)では以前のバージョン(5.4J2)のものになってい
-        ます。
+        ●注意●旧バージョン(5.4J2)のものです。
     README_J.TXT
         このファイルです。
     kanji.c
@@ -44,31 +49,31 @@ Exuberant Ctags 日本語対応版 5.7J1
         す。
 
 ctagsとは？
-    ctagsとはプログラマ向けの開発支援ツールです。
-    機能を簡単に説明するとVC++のエディタのとある関数呼び出し部分でマウス右クリッ
-    クで「～ の定義位置を表示」を選ぶとその関数の定義場所へジャンプしますよね。
-    このような動作を統合環境なしでおこなうものです。
+    ctagsは、テキストエディタやその他のユーティリティで (プログラミング言語で
+    記述された)ソースファイル中のオブジェクト定義をすばやく簡単に検索するため
+    のインデックス(タグ)を生成するためのツールです。 タグは、プログラミング言
+    語で定義されるもののうちインデックスとして取得可能なオブジェクト(あるいは
+    オブジェクト用に生成されたインデックスのエントリ) を示します。 
+
+    機能を簡単に説明するとVisual C++等の統合開発環境で、とある関数呼び出し部分
+    でマウス右クリックで「～ の定義位置を表示」を選ぶとその関数の定義場所へジャ
+    ンプしますよね。このような動作を統合環境なしでおこなうものです。
     ctagsに対応しているエディタ(vi系, emacs系等)とctagsさえあればサクサクとソー
     スが読めます。
 
-    昔からUNIXにはctagsはありましたが対応プログラム言語が少なく、しかもタグ種
-    別が関数とtypedefしか対応していませんでした。
-    exuberant ctagsはそれをパワーアップしたものです。現在のメジャーなプログラ
-    ム言語にはほぼ全て対応し、タグ種別も「ジャンプできないものは無いんじゃない
-    か」という感じで対応してます。
-
     *対応プログラム言語*
-        Assembler, ASP, AWK, BETA, C, C++, C#, COBOL, Eiffel, Erlang, Fortran,
-        HTML, Java, JavaScript, Lisp, Lua, Makefile, Pascal, Perl, PHP,
-        PL/SQL, Python, REXX, Ruby, S-Lang, Scheme,
-        Shell scripts (Bourne/Korn/Z), SML (Standard ML), Tcl, Vera, Verilog,
-        Vim, YACC/Bison
+        Ant, Assembler, ASP, Awk, BASIC, BETA, C, C++, C#, COBOL, DOS Batch,
+        Eiffel, Erlang, Flex, Fortran, HTML, Java, JavaScript, Lisp, Lua,
+        Make, MATLAB, Objective Caml, Pascal, Perl, PHP, PL/SQL,
+        Python (Pyrex/Cython), REXX, Ruby, Scheme,
+        Shell scripts (Bourne/Korn/Z), S-Lang, SML (Standard ML), Tcl, TeX,
+        Vera, Verilog, VHDL, Vim, YACC
 
 使用許諾
     本プログラムはフリー・ソフトウェアです。
-    GNU General Public License (GPL) に従って複製、頒布、変更することができま
-    す。Exuberant Ctags 日本語対応版を使用した事によるいかなる損害、不利益に対
-    しても東はその責を負いません。
+    GNU General Public License Ver.3 (GPLv3) に従って複製、頒布、変更すること
+    ができます。Exuberant Ctags 日本語対応版を使用した事によるいかなる損害、不
+    利益に対しても東はその責を負いません。
 
 インストール方法（for Windows）
     ctags.exe をpathの通っているディレクトリにコピーしてください。
@@ -103,36 +108,44 @@ ctagsとは？
     です。emacs系ならそれぞれ、
         M-.         (Metaキー押しながら . )
         M-*         (Metaキー押しながら * )
-    かな。私はvi使いなのでemacsの事はよく分かりません;;
+    かな。私はvim使いなのでemacsの事はよく分かりません;;
 
     「tagsファイルが見つからない」といった類のメッセージが出た場合は以下をチェッ
     クしてください。
     vi系
     ・tagsファイルがエディタのカレントディレクトリにあるか？
       (:pwd で表示されたディレクトリに tagsファイルがあるか)
-    ・viの設定ファイル(.exrc, .vimrc, _vimrc, _jvimrc等)でtagsオプションが変に
-      設定されていないか？
+    ・viの設定ファイル(.vimrc, _vimrc)でtagsオプションが変に設定されていない
+か？
       (set tags=～ のパラメータにtagsがあるか)
       通常は、set tags=tags で問題ないと思います。
 
 お薦めctags対応エディタ
-    gvim (vim6.x)
+    vim
         本家
             http://www.vim.org/
         KaoriYa版
             http://www.kaoriya.net/
-    jvim (vim3.0ベース日本語localization)
-            http://hp.vector.co.jp/authors/VA003457/
 
 謝辞
-    このパッチを作成するにあたり土田健一(ken_t@st.rim.or.jp)さん作成のjvim 
-    （viクローンエディタ）のソースコードを参考および一部利用させていただきまし
-    た。ソース利用を快諾してくださった土田さんに感謝します。
+    このパッチを作成するにあたり土田健一さん作成のjvim (viクローンエディタ)
+    のソースコードを参考および一部利用させていただきました。ソース利用を快諾し
+    てくださった土田さんに感謝します。
 
-    ctagsマニュアルの翻訳をしてくださった寺田隆平(tera-com@isis.ocn.ne.jp)さ
-    ん、ありがとうございます。
+    ctagsマニュアルの翻訳をしてくださった寺田隆平さん、ありがとうございます。
 
 変更履歴
+    ctags5.8J2      (2010/12/25)
+        ・--jcodeオプションで sjis, euc, utf8 が指定された場合は出力するタグ
+          ファイルのヘッダにエンコード情報(_TAG_FILE_ENCODING)を付加するように
+          した。
+
+    ctags5.8J1      (2009/07/10)
+        ・5.8対応リリース
+        ・UNIX/linux/MacOSX の --jcode のデフォルトを UTF-8 に変更。
+        ・コマンドラインに日本語のフォルダ/ファイル名を指定された場合の動作不
+          良を解消。
+
     ctags5.7J1      (2007/10/10)
         ・5.7対応リリース
         ・-x オプション指定時に日本語部分が文字化けする事があったのを修正。
@@ -207,8 +220,8 @@ ctagsとは？
         初回リリース
 
 その他
-    日本語対応部分のバグ、対応漏れ等ありましたら東(h_east@pop11.odn.ne.jp)まで
-    連絡ください。
+    日本語対応部分のバグ、対応漏れ等ありましたら東(twitter: @h_east)につぶやい
+    てください。
 
 --
 vi:textwidth=78 shiftwidth=4 expandtab:

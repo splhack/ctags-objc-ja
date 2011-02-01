@@ -969,7 +969,7 @@ static void printProgramIdentification (void)
 	printf ("  Compiled: %s, %s\n", __DATE__, __TIME__);
 	printf ("  Addresses: <%s>, %s\n", AUTHOR_EMAIL, PROGRAM_URL);
 #ifdef KANJI
-    printf("  Japanese patch  by %s <%s>\n", JP_AUTHOR_NAME, JP_AUTHOR_EMAIL);
+    printf("  Japanese patch  by %s <%s>\n", JP_AUTHOR_NAME, JP_AUTHOR_TWITTER);
     printf("                     %s\n", JP_AUTHOR_URL);
 #endif
 	printFeatureList ();
