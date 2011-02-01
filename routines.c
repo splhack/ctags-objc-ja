@@ -61,6 +61,9 @@
 #endif
 #include "debug.h"
 #include "routines.h"
+#ifdef KANJI
+# include "kanji.h"
+#endif
 
 /*
 *   MACROS
@@ -569,15 +572,31 @@ extern const char *baseFilename (const char *const filePath)
 #if defined (MSDOS_STYLE_PATH) || defined (VMS)
 	const char *tail = NULL;
 	unsigned int i;
+#ifdef KANJI
+#endif
 
 	/*  Find whichever of the path delimiters is last.
 	 */
 	for (i = 0  ;  i < strlen (PathDelimiters)  ;  ++i)
 	{
+#ifndef KANJI
 		const char *sep = strrchr (filePath, PathDelimiters [i]);
 
 		if (sep > tail)
 			tail = sep;
+#else
+		const char *p;
+		int klen;
+
+		for (p = filePath  ;  *p != '\0'  ;  ++p)
+		{
+			klen = ISkanji(*p);
+			if (klen)
+				p += klen - 1;
+			else if (*p == PathDelimiters [i] && p > tail)
+				tail = p;
+		}
+#endif
 	}
 #else
 	const char *tail = strrchr (filePath, PATH_SEPARATOR);
